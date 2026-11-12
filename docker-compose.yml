@@ -1,0 +1,19 @@
+# Embedded SQLite with WAL mode is used for durable persistence.
+# No external Postgres server required.
+services:
+  mock-telephony:
+    build: .
+    ports:
+      - "8099:8099"
+    command: python -m mock_telephony --speed 1200 --failure-scale 1.0
+    working_dir: /app/assignment-b-workflow
+
+  dispatcher:
+    build: .
+    ports:
+      - "8200:8200"
+    volumes:
+      - .:/app
+    depends_on:
+      - mock-telephony
+    command: python -m solution --provider-url http://mock-telephony:8099 --callback-url http://dispatcher:8200/webhooks/telephony --host 0.0.0.0 --port 8200 --db-path /app/dispatcher.db
